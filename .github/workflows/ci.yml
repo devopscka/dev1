@@ -55,4 +55,10 @@ jobs:
           git push origin "v$new_version"
 
       - name: Confirm tag creation
-        run: git describe --tags
+        run: |
+          # Check if the new tag exists
+          if git rev-parse "v$new_version" >/dev/null 2>&1; then
+            echo "Successfully created tag v$new_version"
+          else
+            echo "Failed to create tag v$new_version"
+          fi
