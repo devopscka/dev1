@@ -22,9 +22,15 @@ jobs:
         run: |
           # Fetch the latest tags from the repo
           git fetch --tags
-          # Get the latest semantic version tag, or default to 0.0.0 if none exist
-          VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
-          echo "current_version=$VERSION" >> $GITHUB_ENV
+          # Check if there are any tags
+          if [ -z "$(git tag)" ]; then
+            # No tags found, default to 0.0.0
+            echo "current_version=0.0.0" >> $GITHUB_ENV
+          else
+            # Get the latest semantic version tag
+            VERSION=$(git describe --tags --abbrev=0)
+            echo "current_version=$VERSION" >> $GITHUB_ENV
+          fi
 
       - name: Calculate new version
         id: calculate_version
