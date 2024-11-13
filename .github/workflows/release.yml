@@ -27,7 +27,7 @@ jobs:
 
   deploy_staging:
     name: Deploy to Staging
-    needs: deploy_test  # Ensures this job runs only after deploy_test succeeds
+    needs: deploy_dev  # Ensures this job runs only after deploy_test succeeds
     uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
     with:
       environment: "stg"
