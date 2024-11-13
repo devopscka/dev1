@@ -20,5 +20,4 @@ jobs:
       deploy_target: ${{ github.event.inputs.environment }}
     secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
-      AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
+
