@@ -8,7 +8,7 @@ on:
 jobs:
   deploy_dev:
     name: Deploy to Development
-    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
     with:
       environment: "dev"
       version: "v1.0.0"  # Set dynamically as needed
@@ -18,7 +18,7 @@ jobs:
   deploy_test:
     name: Deploy to Testing
     needs: deploy_dev  # Ensures this job runs only after deploy_dev succeeds
-    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
     with:
       environment: "test"
       version: "v1.0.0"
@@ -27,8 +27,9 @@ jobs:
 
   deploy_staging:
     name: Deploy to Staging
-    needs: deploy_dev  # Ensures this job runs only after deploy_test succeeds
-    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    needs: deploy_test  # Waits for deploy_test to complete
+    environment: stg  # Specifies the "stg" environment with required approvals
+    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
     with:
       environment: "stg"
       version: "v1.0.0"
@@ -37,8 +38,9 @@ jobs:
 
   deploy_prod:
     name: Deploy to Production
-    needs: deploy_staging  # Ensures this job runs only after deploy_staging succeeds
-    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    needs: deploy_staging  # Waits for deploy_staging to complete
+    environment: prod  # Specifies the "prod" environment with required approvals
+    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
     with:
       environment: "prod"
       version: "v1.0.0"
