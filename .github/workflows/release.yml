@@ -1,23 +1,46 @@
-name: Deploy
+name: Environment-Specific Deployments
 
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy (e.g., dev, test, stg, prod)'
-        required: true
-        type: choice
-        options:
-          - dev
-          - test
-          - stg
-          - prod
+  push:
+    branches:
+      - main
 
 jobs:
-  deploy:
+  deploy_dev:
+    name: Deploy to Development
     uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
     with:
-      deploy_target: ${{ github.event.inputs.environment }}
+      environment: "dev"
+      version: "v1.0.0"  # You can dynamically set this based on your tagging or versioning logic
     secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      DEPLOY_SECRET: ${{ secrets.DEV_DEPLOY_SECRET }}
 
+  deploy_test:
+    name: Deploy to Testing
+    needs: deploy_dev  # Ensures this job runs only after deploy_dev succeeds
+    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    with:
+      environment: "test"
+      version: "v1.0.0"
+    secrets:
+      DEPLOY_SECRET: ${{ secrets.TEST_DEPLOY_SECRET }}
+
+  deploy_staging:
+    name: Deploy to Staging
+    needs: deploy_test  # Ensures this job runs only after deploy_test succeeds
+    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    with:
+      environment: "stg"
+      version: "v1.0.0"
+    secrets:
+      DEPLOY_SECRET: ${{ secrets.STAGING_DEPLOY_SECRET }}
+
+  deploy_prod:
+    name: Deploy to Production
+    needs: deploy_staging  # Ensures this job runs only after deploy_staging succeeds
+    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
+    with:
+      environment: "prod"
+      version: "v1.0.0"
+    secrets:
+      DEPLOY_SECRET: ${{ secrets.PROD_DEPLOY_SECRET }}
