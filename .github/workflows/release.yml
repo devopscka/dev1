@@ -1,48 +1,24 @@
-name: Environment-Specific Deployments
+name: Deploy
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (e.g., dev, test, stg, prod)'
+        required: true
+        type: choice
+        options:
+          - dev
+          - test
+          - stg
+          - prod
 
 jobs:
-  deploy_dev:
-    name: Deploy to Development
-    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
+  deploy:
+    uses: devopscka/pub1/.github/workflows/deploy-workflow.yml@main
     with:
-      environment: "dev"
-      version: "v1.0.0"  # Set dynamically as needed
+      deploy_target: ${{ github.event.inputs.environment }}
     secrets:
-      DEPLOY_SECRET: ${{ secrets.DEV_DEPLOY_SECRET }}
-
-  deploy_test:
-    name: Deploy to Testing
-    needs: deploy_dev  # Ensures this job runs only after deploy_dev succeeds
-    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
-    with:
-      environment: "test"
-      version: "v1.0.0"
-    secrets:
-      DEPLOY_SECRET: ${{ secrets.TEST_DEPLOY_SECRET }}
-
-  deploy_staging:
-    name: Deploy to Staging
-    needs: deploy_test  # Waits for deploy_test to complete
-    environment: stg  # Specifies the "stg" environment with required approvals
-    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
-    with:
-      environment: "stg"
-      version: "v1.0.0"
-    secrets:
-      DEPLOY_SECRET: ${{ secrets.STAGING_DEPLOY_SECRET }}
-
-  deploy_prod:
-    name: Deploy to Production
-    needs: deploy_staging  # Waits for deploy_staging to complete
-    environment: prod  # Specifies the "prod" environment with required approvals
-    uses: organization-or-username/centralized-workflows/.github/workflows/deploy.yml@main
-    with:
-      environment: "prod"
-      version: "v1.0.0"
-    secrets:
-      DEPLOY_SECRET: ${{ secrets.PROD_DEPLOY_SECRET }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      AZURE_USERNAME: ${{ secrets.AZURE_USERNAME }}
+      AZURE_PASSWORD: ${{ secrets.AZURE_PASSWORD }}
