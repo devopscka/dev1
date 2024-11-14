@@ -2,4 +2,4 @@
 
 added reviewers for prod
 
-deploy_prod
+deploy_prod and prod
