@@ -1,64 +1,74 @@
-name: CI/CD with Semantic Version Tagging
-
+name: Semantic Version Tagging
 on:
   push:
     branches:
-      - main  # Adjust this if you want tagging on another branch
+      - main
+      - 'hotfix/*'
 
 jobs:
-  build:
+  tag:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Build the Docker image
-        run: |
-          docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      - name: Fetch all tags
+        run: git fetch --tags
 
-      - name: Get current version
-        id: get_version
+      - name: Determine version increment based on branch
+        id: determine_version_part
         run: |
-          # Fetch the latest tags from the repo
-          git fetch --tags
-          # Check if there are any tags
-          if [ -z "$(git tag)" ]; then
-            # No tags found, default to 0.0.0
-            echo "current_version=0.0.0" >> $GITHUB_ENV
-          else
-            # Get the latest semantic version tag
-            VERSION=$(git describe --tags --abbrev=0)
-            echo "current_version=$VERSION" >> $GITHUB_ENV
+          VERSION_PART="patch"
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            VERSION_PART="minor"
+          elif [[ "${GITHUB_REF##*/}" =~ ^hotfix/ ]]; then
+            VERSION_PART="patch"
           fi
+          echo "VERSION_PART=$VERSION_PART" >> $GITHUB_ENV
 
-      - name: Calculate new version
-        id: calculate_version
+      - name: Get the latest tag
+        id: get_latest_tag
         run: |
-          # Define how to increment the version; here, we increment the patch version
-          IFS='.' read -r major minor patch <<< "$current_version"
-          patch=$((patch + 1))
-          new_version="$major.$minor.$patch"
-          echo "new_version=$new_version" >> $GITHUB_ENV
+          LATEST_TAG=$(git tag | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="v0.0.0"
+          fi
+          echo "LATEST_TAG=$LATEST_TAG" >> $GITHUB_ENV
+          echo "::set-output name=latest_tag::$LATEST_TAG"
 
-      - name: Tag the new version
-        if: steps.calculate_version.outputs.new_version != ''
+      - name: Determine next version
+        id: increment_version
+        run: |
+          TAG=${LATEST_TAG#v}
+          MAJOR=$(echo $TAG | cut -d. -f1)
+          MINOR=$(echo $TAG | cut -d. -f2)
+          PATCH=$(echo $TAG | cut -d. -f3)
+          if [ "$VERSION_PART" = "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          elif [ "$VERSION_PART" = "patch" ]; then
+            PATCH=$((PATCH + 1))
+          fi
+          NEXT_TAG="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "NEXT_TAG=$NEXT_TAG" >> $GITHUB_ENV
+          echo "::set-output name=next_tag::$NEXT_TAG"
+
+      - name: Create and push new tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure Git for tagging and pushing
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-          # Create the new tag
-          git tag -a "v$new_version" -m "Release $new_version"
-          # Push the new tag to the repository
-          git push origin "v$new_version"
+          git tag $NEXT_TAG
+          git push origin $NEXT_TAG
 
-      - name: Confirm tag creation
-        run: |
-          # Check if the new tag exists
-          if git rev-parse "v$new_version" >/dev/null 2>&1; then
-            echo "Successfully created tag v$new_version"
-          else
-            echo "Failed to create tag v$new_version"
-          fi
+  build:
+    runs-on: ubuntu-latest
+    needs: tag  # This ensures the 'build' job runs only after the 'tag' job
+    run-name: "CI Pipeline for version ${{ needs.tag.outputs.next_tag }}"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
