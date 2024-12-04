@@ -1,1 +1,15 @@
-#in progress
+name: Call CICD Workflow from Another Repo
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-cicd-pipeline:
+    uses: devopscka/workflow/.github/workflows/cicd.yml@main
+    with:
+      environment: "dev"
+      acr_name: "myacr"
+      helm_chart_path: "path/to/helm/values/file"
+    secrets:
+      AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
