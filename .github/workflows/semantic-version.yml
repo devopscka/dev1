@@ -9,7 +9,7 @@ on:
 jobs:
   invoke-semantic-version:
     uses: devopscka/workflow/.github/workflows/semantic-version-tagging.yml@main
-    # with:
-    #   branches:
-    #     - main
-    #     - 'hotfix/*'
+    with:
+      branches:
+        - main
+        - 'hotfix/*'
