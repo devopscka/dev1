@@ -1,10 +1,10 @@
-name: Semantic Version Tagging
+# name: Semantic Version Tagging
 
-on:
-  push:
-    branches:
-      - main
-      - 'hotfix/*'  # Match any branch that starts with 'hotfix/'
+# on:
+#   push:
+#     branches:
+#       - main
+#       - 'hotfix/*'  # Match any branch that starts with 'hotfix/'
 
 jobs:
   tag:
