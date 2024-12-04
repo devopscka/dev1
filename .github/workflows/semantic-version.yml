@@ -1,0 +1,15 @@
+name: Call Semantic Version Tagging
+
+on:
+  push:
+    branches:
+      - main
+      - 'hotfix/*'
+
+jobs:
+  invoke-semantic-version:
+    uses: devopscka/workflow/.github/workflows/.github/workflows/semantic-version-tagging.yml
+    with:
+      branches:
+        - main
+        - 'hotfix/*'
