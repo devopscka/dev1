@@ -6,7 +6,7 @@ on:
 
 jobs:
   trigger-cicd-pipeline:
-    uses: devopscka/workflow/.github/workflows/cicd.yml@main
+    uses: devopscka/workflow/.github/workflows/cicd-workflow.yml@main
     with:
       environment: "dev"
       acr_name: "myacr"
