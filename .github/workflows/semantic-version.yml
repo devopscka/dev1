@@ -1,4 +1,4 @@
-name: Call Semantic Version Tagging
+name: Invoke Semantic Version Tagging
 
 on:
   push:
@@ -7,9 +7,10 @@ on:
       - 'hotfix/*'
 
 jobs:
-  invoke-semantic-version:
+  invoke:
     uses: devopscka/workflow/.github/workflows/semantic-version-tagging.yml@main
     with:
-      branches:
-        - main
-        - 'hotfix/*'
+      branch: ${{ github.ref_name }}
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
