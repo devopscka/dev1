@@ -11,6 +11,4 @@ jobs:
     uses: devopscka/workflow/.github/workflows/semantic-version-tagging.yml@main
     with:
       branch: ${{ github.ref_name }}
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
